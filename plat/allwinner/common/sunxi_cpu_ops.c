@@ -54,7 +54,7 @@ static void sunxi_cpu_off(u_register_t mpidr)
 	VERBOSE("PSCI: Powering off cluster %d core %d\n", cluster, core);
 
 	/* Deassert DBGPWRDUP */
-	mmio_clrbits_32(SUNXI_CPUCFG_DBG_REG0, BIT(core));
+	//mmio_clrbits_32(SUNXI_CPUCFG_DBG_REG0, BIT(core));
 	/* Activate the core output clamps, but not for core 0. */
 	if (core != 0)
 		mmio_setbits_32(SUNXI_POWEROFF_GATING_REG(cluster), BIT(core));
@@ -87,7 +87,7 @@ void sunxi_cpu_on(u_register_t mpidr)
 	/* Deassert CPU core reset */
 	mmio_setbits_32(SUNXI_CPUCFG_RST_CTRL_REG(cluster), BIT(core));
 	/* Assert DBGPWRDUP */
-	mmio_setbits_32(SUNXI_CPUCFG_DBG_REG0, BIT(core));
+	//mmio_setbits_32(SUNXI_CPUCFG_DBG_REG0, BIT(core));
 }
 
 void sunxi_cpu_power_off_others(void)
