@@ -70,7 +70,7 @@ void sunxi_cpu_on(u_register_t mpidr)
 	unsigned int core    = MPIDR_AFFLVL0_VAL(mpidr);
 
 	VERBOSE("PSCI: Powering on cluster %d core %d\n", cluster, core);
-
+	// (03000024 & 7) != 0;
 	mmio_clrbits_32(SUNXI_C0_CPU_CTRL_REG(core), 0x1);
 	mmio_clrbits_32(SUNXI_CPU_UNK_REG(core), 0x1);
 	mmio_setbits_32(SUNXI_CPU_CTRL_REG(core), 0x1);
