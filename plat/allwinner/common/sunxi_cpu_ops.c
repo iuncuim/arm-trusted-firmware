@@ -52,16 +52,27 @@ static void sunxi_cpu_off(u_register_t mpidr)
 	unsigned int core    = MPIDR_AFFLVL0_VAL(mpidr);
 
 	VERBOSE("PSCI: Powering off cluster %d core %d\n", cluster, core);
+	uint32_t stat = mmio_read_32(SUNXI_SYSCON_BASE + 0x0024);
 
-	/* Deassert DBGPWRDUP */
-	mmio_clrbits_32(SUNXI_CPUCFG_DBG_REG0, BIT(core));
-	/* Activate the core output clamps, but not for core 0. */
-	if (core != 0)
-		mmio_setbits_32(SUNXI_POWEROFF_GATING_REG(cluster), BIT(core));
-	/* Assert CPU power-on reset */
-	mmio_clrbits_32(SUNXI_POWERON_RST_REG(cluster), BIT(core));
-	/* Remove power from the CPU */
-	sunxi_cpu_disable_power(cluster, core);
+	if ((stat & 7) == 0) {
+		/* Deassert DBGPWRDUP */
+		mmio_clrbits_32(SUNXI_CPUCFG_DBG_REG0, BIT(core));
+		/* Activate the core output clamps, but not for core 0. */
+		if (core != 0)
+			mmio_setbits_32(SUNXI_POWEROFF_GATING_REG(cluster), BIT(core));
+		/* Assert CPU power-on reset */
+		mmio_clrbits_32(SUNXI_POWERON_RST_REG(cluster), BIT(core));
+		/* Remove power from the CPU */
+		sunxi_cpu_disable_power(cluster, core);
+	} else {
+		/* fixme: should be another cpu off sequence */
+		if (core != 0)
+			mmio_setbits_32(SUNXI_POWEROFF_GATING_REG(cluster), BIT(core));
+		/* Assert CPU power-on reset */
+		mmio_clrbits_32(SUNXI_POWERON_RST_REG(cluster), BIT(core));
+		/* Remove power from the CPU */
+		sunxi_cpu_disable_power(cluster, core);
+	}
 }
 
 void sunxi_cpu_on(u_register_t mpidr)
@@ -70,7 +81,9 @@ void sunxi_cpu_on(u_register_t mpidr)
 	unsigned int core    = MPIDR_AFFLVL0_VAL(mpidr);
 
 	VERBOSE("PSCI: Powering on cluster %d core %d\n", cluster, core);
-	if(mmio_read_32(SUNXI_SYSCON_BASE + 0x0024) & 7 == 0){
+	uint32_t stat = mmio_read_32(SUNXI_SYSCON_BASE + 0x0024);
+
+	if((stat & 7) == 0){
 		/* Assert CPU core reset */
 		mmio_clrbits_32(SUNXI_CPUCFG_RST_CTRL_REG(cluster), BIT(core));
 		/* Assert CPU power-on reset */

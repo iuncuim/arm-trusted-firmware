@@ -14,6 +14,8 @@
 #define SUNXI_CPUCFG_CLS_CTRL_REG1(c)	(SUNXI_C0_CPUXCFG_BASE + 0x0014 + (c) * 0x10)
 #define SUNXI_CPUCFG_CACHE_CFG_REG	(SUNXI_C0_CPUXCFG_BASE + 0x0024)
 #define SUNXI_C0_CPU_CTRL_REG(c)	(SUNXI_C0_CPUXCFG_BASE + 0x0060 + (c) * 4)
+// fixme: if datasheet right t507 doesn't have this register
+#define SUNXI_CPUCFG_DBG_REG0		(SUNXI_C0_CPUXCFG_BASE + 0x00c0)
 
 #define SUNXI_CPUCFG_RST_CTRL_REG(c)	(SUNXI_C0_CPUXCFG_BASE + 0x0000 + (c) * 4)
 #define SUNXI_CPU_CTRL_REG(c)			(SUNXI_CPUSUBSYS_BASE + 0x0020 + (c) * 4)
