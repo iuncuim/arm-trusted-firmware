@@ -70,24 +70,35 @@ void sunxi_cpu_on(u_register_t mpidr)
 	unsigned int core    = MPIDR_AFFLVL0_VAL(mpidr);
 
 	VERBOSE("PSCI: Powering on cluster %d core %d\n", cluster, core);
-
-	/* Assert CPU core reset */
-	mmio_clrbits_32(SUNXI_CPUCFG_RST_CTRL_REG(cluster), BIT(core));
-	/* Assert CPU power-on reset */
-	mmio_clrbits_32(SUNXI_POWERON_RST_REG(cluster), BIT(core));
-	/* Set CPU to start in AArch64 mode */
-	mmio_setbits_32(SUNXI_AA64nAA32_REG(cluster),
-			BIT(SUNXI_AA64nAA32_OFFSET + core));
-	/* Apply power to the CPU */
-	sunxi_cpu_enable_power(cluster, core);
-	/* Release the core output clamps */
-	mmio_clrbits_32(SUNXI_POWEROFF_GATING_REG(cluster), BIT(core));
-	/* Deassert CPU power-on reset */
-	mmio_setbits_32(SUNXI_POWERON_RST_REG(cluster), BIT(core));
-	/* Deassert CPU core reset */
-	mmio_setbits_32(SUNXI_CPUCFG_RST_CTRL_REG(cluster), BIT(core));
-	/* Assert DBGPWRDUP */
-	mmio_setbits_32(SUNXI_CPUCFG_DBG_REG0, BIT(core));
+	if(mmio_read_32(SUNXI_SYSCON_BASE + 0x0024) & 7 == 0){
+		/* Assert CPU core reset */
+		mmio_clrbits_32(SUNXI_CPUCFG_RST_CTRL_REG(cluster), BIT(core));
+		/* Assert CPU power-on reset */
+		mmio_clrbits_32(SUNXI_POWERON_RST_REG(cluster), BIT(core));
+		/* Set CPU to start in AArch64 mode */
+		mmio_setbits_32(SUNXI_AA64nAA32_REG(cluster),
+				BIT(SUNXI_AA64nAA32_OFFSET + core));
+		/* Apply power to the CPU */
+		sunxi_cpu_enable_power(cluster, core);
+		/* Release the core output clamps */
+		mmio_clrbits_32(SUNXI_POWEROFF_GATING_REG(cluster), BIT(core));
+		/* Deassert CPU power-on reset */
+		mmio_setbits_32(SUNXI_POWERON_RST_REG(cluster), BIT(core));
+		/* Deassert CPU core reset */
+		mmio_setbits_32(SUNXI_CPUCFG_RST_CTRL_REG(cluster), BIT(core));
+		/* Assert DBGPWRDUP */
+		mmio_setbits_32(SUNXI_CPUCFG_DBG_REG0, BIT(core));
+	} else {
+		mmio_clrbits_32(SUNXI_C0_CPU_CTRL_REG(core), 0x1);
+		mmio_clrbits_32(SUNXI_CPU_UNK_REG(core), 0x1);
+		mmio_setbits_32(SUNXI_CPU_CTRL_REG(core), 0x1);
+		/* Apply power to the CPU */
+		sunxi_cpu_enable_power(cluster, core);
+		mmio_clrbits_32(SUNXI_CPU_UNK_REG(core), 0x2);
+		mmio_setbits_32(SUNXI_CPU_UNK_REG(core), 0x1);
+		mmio_setbits_32(SUNXI_C0_CPU_CTRL_REG(core), 0x1);
+		mmio_setbits_32(SUNXI_C0_CPU_CTRL_REG(core), 0x100);
+	}
 }
 
 void sunxi_cpu_power_off_others(void)
